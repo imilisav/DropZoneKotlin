@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.constraint.ConstraintLayout
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" xmlns:tools="http://schemas.android.com/tools"
+        tools:context=".FilePickerActivity">
+
+    <TextView
+            android:text="@string/selectFile"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/file_selector_title" app:layout_constraintStart_toStartOf="parent"
+            android:layout_marginStart="20dp"
+            app:layout_constraintTop_toTopOf="parent" android:layout_marginTop="20dp"
+            app:layout_constraintEnd_toEndOf="parent" android:layout_marginEnd="20dp" android:textSize="20sp"
+            android:textStyle="bold"/>
+
+    <LinearLayout
+            android:orientation="horizontal"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/file_selector_user_info" app:layout_constraintStart_toStartOf="parent"
+            android:layout_marginStart="20dp" app:layout_constraintEnd_toEndOf="parent" android:layout_marginEnd="20dp"
+            android:layout_marginTop="20dp" app:layout_constraintTop_toBottomOf="@+id/file_selector_title">
+
+        <TextView
+                android:text="@string/user"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:id="@+id/user_info_name_title" app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintEnd_toEndOf="parent" android:textSize="18sp"
+                android:layout_weight="0"/>
+
+        <TextView
+                android:text=""
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="10dp"
+                android:id="@+id/user_info_name_value" app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintEnd_toEndOf="parent" android:textSize="16sp"
+                android:layout_weight="1"/>
+
+    </LinearLayout>
+
+    <LinearLayout
+            android:orientation="horizontal"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:id="@+id/file_selector_file_info" app:layout_constraintStart_toStartOf="parent"
+            android:layout_marginStart="20dp" app:layout_constraintEnd_toEndOf="parent" android:layout_marginEnd="20dp"
+            app:layout_constraintHorizontal_bias="1.0" android:layout_marginTop="20dp"
+            app:layout_constraintTop_toBottomOf="@+id/file_selector_user_info">
+
+        <TextView
+                android:text="@string/file"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:id="@+id/file_info_name_title" app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintEnd_toEndOf="parent" android:textSize="18sp"
+                android:layout_weight="0"/>
+
+        <TextView
+                android:text=""
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="10dp"
+                android:id="@+id/file_info_name_value" app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintEnd_toEndOf="parent" android:textSize="16sp"
+                android:layout_weight="1"/>
+    </LinearLayout>
+    <Button
+            android:text="@string/chooseFile"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/file_select_button" app:layout_constraintStart_toStartOf="parent"
+            android:layout_marginStart="20dp" app:layout_constraintEnd_toEndOf="parent"
+            android:layout_marginEnd="20dp"
+            app:layout_constraintHorizontal_bias="0.0"
+            android:background="@color/colorAccent" android:textColor="@android:color/white"
+            android:layout_marginTop="30dp" app:layout_constraintTop_toBottomOf="@+id/file_selector_file_info"/>
+
+    <Button
+            android:text="@string/send"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/file_selector_send" app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            android:layout_weight="1"
+            android:background="@color/colorPrimary" android:textColor="@android:color/white"
+            app:layout_constraintHorizontal_bias="0.0"
+            android:layout_marginStart="20dp"
+            android:layout_marginEnd="20dp"
+            app:layout_constraintBottom_toBottomOf="parent" android:layout_marginBottom="20dp"/>
+
+</android.support.constraint.ConstraintLayout>

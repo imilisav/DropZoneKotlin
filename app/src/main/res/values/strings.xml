@@ -1,0 +1,17 @@
+<resources>
+    <string name="app_name">DropZone</string>
+    <string name="nearUsers">Nearby Users</string>
+    <string name="enterZone">Enter The Zone</string>
+    <string name="exitZone">Exit The Zone</string>
+    <string name="connected">In Zone</string>
+    <string name="disconnected">Not In Zone</string>
+    <string name="refresh">Refresh List</string>
+
+    <string name="selectFile">Select a file to send</string>
+    <string name="chooseFile">Choose a File</string>
+    <string name="user">User:</string>
+    <string name="file">File:</string>
+    <string name="send">Send</string>
+
+    <string name="sending">Sending the file, please wait</string>
+</resources>
