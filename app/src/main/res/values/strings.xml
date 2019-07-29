@@ -1,6 +1,6 @@
 <resources>
     <string name="app_name">DropZone</string>
-    <string name="nearUsers">Nearby Users</string>
+    <string name="nearUsers">Choose a Recipient</string>
     <string name="enterZone">Enter The Zone</string>
     <string name="exitZone">Exit The Zone</string>
     <string name="connected">In Zone</string>
@@ -12,6 +12,9 @@
     <string name="user">User:</string>
     <string name="file">File:</string>
     <string name="send">Send</string>
+    <string name="cancel">Cancel</string>
 
     <string name="sending">Sending the file, please wait</string>
+    <string name="accept">Accept</string>
+    <string name="reject">Reject</string>
 </resources>

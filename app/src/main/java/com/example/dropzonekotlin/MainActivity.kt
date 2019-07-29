@@ -13,7 +13,6 @@ import android.content.IntentFilter
 import android.content.pm.PackageManager
 import android.graphics.Color
 import android.os.Bundle
-import android.provider.AlarmClock.EXTRA_MESSAGE
 import android.support.v4.app.ActivityCompat
 import android.support.v4.content.ContextCompat
 import android.util.Log
@@ -32,6 +31,8 @@ class MainActivity : AppCompatActivity() {
     private val REQUEST_ENABLE_BLUETOOTH = 1
     private var isInZone : Boolean = false
     private var MY_PERMISSIONS_REQUEST_ACCESS_COARSE_LOCATION = 0
+    private var MY_PERMISSIONS_REQUEST_READ_EXTERNAL_STORAGE = 0
+    private var MY_PERMISSIONS_REQUEST_WRITE_EXTERNAL_STORAGE = 0
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -44,6 +45,11 @@ class MainActivity : AppCompatActivity() {
             return
         }
 
+        if (!m_bluetoothAdapter!!.isEnabled) {
+            val enableIntent = Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE)
+            startActivityForResult(enableIntent, REQUEST_ENABLE_BLUETOOTH)
+        }
+
         // Check for location permissions
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             // Permission is not granted
@@ -52,6 +58,28 @@ class MainActivity : AppCompatActivity() {
             } else {
                 // No explanation needed, we can request the permission.
                 ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.ACCESS_COARSE_LOCATION), MY_PERMISSIONS_REQUEST_ACCESS_COARSE_LOCATION)
+            }
+        }
+
+        // Check for read file permissions
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+            // Permission is not granted
+            // Should we show an explanation?
+            if (ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.READ_EXTERNAL_STORAGE)) {
+            } else {
+                // No explanation needed, we can request the permission.
+                ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE), MY_PERMISSIONS_REQUEST_READ_EXTERNAL_STORAGE)
+            }
+        }
+
+        // Check for write file permissions
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+            // Permission is not granted
+            // Should we show an explanation?
+            if (ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.WRITE_EXTERNAL_STORAGE)) {
+            } else {
+                // No explanation needed, we can request the permission.
+                ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.WRITE_EXTERNAL_STORAGE), MY_PERMISSIONS_REQUEST_WRITE_EXTERNAL_STORAGE)
             }
         }
 
@@ -83,7 +111,12 @@ class MainActivity : AppCompatActivity() {
                     // object and its info from the Intent.
                     val device: BluetoothDevice = intent.getParcelableExtra(EXTRA_DEVICE)
                     Log.i("discoveredDevice", "" + device.address)
-                    m_discoveredDevices.add(device)
+                    val index = m_discoveredDevices.indexOf(device)
+                    if (index == -1) {
+                        m_discoveredDevices.add(device)
+                    } else {
+                        m_discoveredDevices[index] = device
+                    }
                 }
             }
         }
@@ -99,7 +132,7 @@ class MainActivity : AppCompatActivity() {
                     // The name in discovery has changed, update the list
                     val device: BluetoothDevice = intent.getParcelableExtra(EXTRA_DEVICE)
                     Log.i("updatedName", "" + device.name)
-                    var index = m_discoveredDevices.indexOf(device)
+                    val index = m_discoveredDevices.indexOf(device)
                     if (index == -1) {
                         m_discoveredDevices.add(device)
                     } else {
@@ -120,7 +153,7 @@ class MainActivity : AppCompatActivity() {
         val list : ArrayList<BluetoothDevice> = ArrayList()
         val listDeviceNames : ArrayList<String> = ArrayList()
 
-        if (!m_pairedDevices.isEmpty()) {
+        if (m_pairedDevices.isNotEmpty()) {
             for (device: BluetoothDevice in m_pairedDevices) {
                 list.add(device)
                 listDeviceNames.add(device.name)
@@ -130,7 +163,7 @@ class MainActivity : AppCompatActivity() {
             toast("No paired bluetooth devices found")
         }
 
-        if (!m_discoveredDevices.isEmpty()) {
+        if (m_discoveredDevices.isNotEmpty()) {
             for (device: BluetoothDevice in m_discoveredDevices) {
                 list.add(device)
                 if (device.name == null) {
@@ -201,19 +234,16 @@ class MainActivity : AppCompatActivity() {
 
             Log.i("discovery", "" + m_bluetoothAdapter!!.startDiscovery())
 
-            val intent = Intent(this, BluetoothConnectionService::class.java)
-            intent.putExtra(EXTRA_MESSAGE, "START_SERVER")
-            startService(intent)
+            BluetoothConnectionService().start("START_SERVER", null, null)
 
             changeTextToConnected(status_title)
             isInZone = true
+            refreshList()
         }
     }
 
     private fun exitTheZone() {
-        val intent = Intent(this, BluetoothConnectionService::class.java)
-        stopService(intent)
-
+        BluetoothConnectionService.BluetoothServerController().cancel()
         m_bluetoothAdapter!!.cancelDiscovery()
 
         main_select_user_list.adapter = null

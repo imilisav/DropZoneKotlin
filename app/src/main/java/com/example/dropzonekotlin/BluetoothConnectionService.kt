@@ -1,82 +1,73 @@
 package com.example.dropzonekotlin
 
-import android.app.Service
 import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothDevice
 import android.bluetooth.BluetoothServerSocket
 import android.bluetooth.BluetoothSocket
-import android.content.Intent
-import android.content.Intent.EXTRA_REFERRER_NAME
-import android.os.IBinder
-import android.provider.AlarmClock.EXTRA_MESSAGE
 import android.util.Log
-import java.io.File
-import java.io.IOException
+import com.example.dropzonekotlin.BluetoothConnectionHelper.Companion.getPublicStorageDir
+import com.example.dropzonekotlin.BluetoothConnectionHelper.Companion.isExternalStorageWritable
+import java.io.*
 import java.util.*
+import java.nio.ByteBuffer
 
-class BluetoothConnectionService : Service() {
+class BluetoothConnectionService {
 
     companion object {
         val uuid: UUID = UUID.fromString("8989063a-c9af-463a-b3f1-f21d9b2b827b")
         var fileURI: String = ""
+        val TAG: String = "BLUETOOTH CONNECTION"
     }
 
-    /**
-     * I'm Testing this out right now, to see what causes the IOException.
-     * */
-    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-
-//        if (intent!!.getStringExtra(EXTRA_MESSAGE) == "START_SERVER") {
-//            BluetoothServerController().start()
-//        } else if (intent.getStringExtra(EXTRA_MESSAGE) == "START_CLIENT") {
-//            fileURI = intent.getStringExtra(EXTRA_REFERRER_NAME)
-//            BluetoothClient(intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE)).start()
-//        }
-        Log.i("BLUETOOTH SERVICE", intent!!.getStringExtra(EXTRA_MESSAGE))
-
-        return START_STICKY
-    }
-
-    override fun onBind(p0: Intent?): IBinder? {
-        return null
-    }
-
-    override fun onDestroy() {
-        super.onDestroy()
-        Log.i("BLUETOOTH SERVICE", "Destroyed")
+    fun start(message: String, device: BluetoothDevice?, uri: String?) {
+        Log.i("BLUETOOTH SERVICE", message)
+        if (message == "START_SERVER") {
+            BluetoothServerController().start()
+        } else if (message == "START_CLIENT") {
+            fileURI = uri!!
+            BluetoothClient(device!!).start()
+        }
     }
 
     class BluetoothClient(device: BluetoothDevice): Thread() {
         private val socket = device.createRfcommSocketToServiceRecord(uuid)
 
          override fun run() {
-            Log.i("client", "Connecting")
-            this.socket.connect()
+             Log.i("client", "Connecting")
 
-            Log.i("client", "Sending")
-            val outputStream = this.socket.outputStream
-            val inputStream = this.socket.inputStream
-            try {
-                val buff = ByteArray(1024)
-                File(fileURI).inputStream().buffered().use { input ->
-                    while(true) {
-                        val sz = input.read(buff)
-                        if (sz <= 0) break
+             this.socket.connect()
 
-                        ///at that point we have a sz bytes in the buff to process
-                        outputStream.write(sz)
-                    }
-                }
-                outputStream.flush()
-                Log.i("client", "Sent")
-            } catch(e: Exception) {
-                Log.e("client", "Cannot send", e)
-            } finally {
-                outputStream.close()
-                inputStream.close()
-                this.socket.close()
-            }
-        }
+             val outputStream = this.socket.outputStream
+             val inputStream = this.socket.inputStream
+
+             val file = File(fileURI)
+             val fileBytes: ByteArray
+             try {
+                 fileBytes = ByteArray(file.length().toInt())
+                 val bis = BufferedInputStream(FileInputStream(file))
+                 bis.read(fileBytes, 0, fileBytes.size)
+                 bis.close()
+             } catch (e: IOException) {
+                 Log.e(TAG, "Error occurred when converting File to byte[]", e)
+                 return
+             }
+
+             val fileNameSize = ByteBuffer.allocate(4)
+             fileNameSize.putInt(file.name.toByteArray().size)
+
+             val fileSize = ByteBuffer.allocate(4)
+             fileSize.putInt(fileBytes.size)
+
+             outputStream.write(fileNameSize.array())
+             outputStream.write(file.name.toByteArray())
+             outputStream.write(fileSize.array())
+             outputStream.write(fileBytes)
+
+             sleep(5000)
+             outputStream.close()
+             inputStream.close()
+             this.socket.close()
+         }
     }
 
     class BluetoothServerController : Thread() {
@@ -86,7 +77,7 @@ class BluetoothConnectionService : Service() {
         init {
             val btAdapter = BluetoothAdapter.getDefaultAdapter()
             if (btAdapter != null) {
-                this.serverSocket = btAdapter.listenUsingRfcommWithServiceRecord("BluetoothConnectionService", uuid)
+                this.serverSocket = btAdapter.listenUsingRfcommWithServiceRecord("DropZoneKotlin", uuid)
                 this.cancelled = false
             } else {
                 this.serverSocket = null
@@ -127,22 +118,59 @@ class BluetoothConnectionService : Service() {
         private val outputStream = this.socket.outputStream
 
         override fun run() {
-            try {
-                val available = inputStream.available()
-                val bytes = ByteArray(available)
-                Log.i("server", "Reading")
-                inputStream.read(bytes, 0, available)
-                val text = String(bytes)
-                Log.i("server", "Message received")
-                Log.i("server", text)
-                //activity.appendText(text)
-            } catch (e: Exception) {
-                Log.e("client", "Cannot read data", e)
-            } finally {
-                inputStream.close()
-                outputStream.close()
-                socket.close()
+            if (isExternalStorageWritable()) {
+                // TODO: put try-catch blocks for each read
+                Log.i(TAG, "START Bluetooth Server")
+                val totalFileNameSizeInBytes: Int
+                val totalFileSizeInBytes: Int
+
+                // File name string size
+                val fileNameSizebuffer = ByteArray(4)
+                inputStream!!.read(fileNameSizebuffer, 0, 4)
+                var fileSizeBuffer = ByteBuffer.wrap(fileNameSizebuffer)
+                totalFileNameSizeInBytes = fileSizeBuffer.int
+
+                // String of file name
+                val fileNamebuffer = ByteArray(1024)
+                inputStream.read(fileNamebuffer, 0, totalFileNameSizeInBytes)
+                val fileName = String(fileNamebuffer, 0, totalFileNameSizeInBytes)
+
+                // File size
+                val fileSizebuffer = ByteArray(4)
+                inputStream.read(fileSizebuffer, 0, 4)
+                fileSizeBuffer = ByteBuffer.wrap(fileSizebuffer)
+                totalFileSizeInBytes = fileSizeBuffer.int
+
+                // The actual file
+                Log.i(TAG, "Receiving file, please wait")
+                val baos = ByteArrayOutputStream()
+                val buffer = ByteArray(1024)
+                var read: Int
+                var totalBytesRead = 0
+                read = inputStream.read(buffer, 0, buffer.size)
+                while (read != -1) {
+                    baos.write(buffer, 0, read)
+                    totalBytesRead += read
+                    if (totalBytesRead == totalFileSizeInBytes) {
+                        break
+                    }
+                    read = inputStream.read(buffer, 0, buffer.size)
+                }
+                baos.flush()
+
+                val saveFile = getPublicStorageDir(fileName)
+                if (saveFile.exists()) {
+                    saveFile.delete()
+                }
+                val fos = FileOutputStream(saveFile.path)
+                fos.write(baos.toByteArray())
+                fos.close()
+                Log.i(TAG, "File Received")
             }
+            sleep(5000)
+            inputStream.close()
+            outputStream.close()
+            socket.close()
         }
     }
 }

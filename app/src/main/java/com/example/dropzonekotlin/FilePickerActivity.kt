@@ -8,10 +8,12 @@ import android.os.Bundle
 import android.provider.AlarmClock.EXTRA_MESSAGE
 import kotlinx.android.synthetic.main.activity_file_selector.*
 import org.jetbrains.anko.toast
+import android.support.v7.app.AlertDialog
+import java.io.File
 
 class FilePickerActivity : AppCompatActivity() {
     private var device : BluetoothDevice? = null
-    private var fileURI : String? = ""
+    private var fileURI : String = ""
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -32,7 +34,7 @@ class FilePickerActivity : AppCompatActivity() {
     }
 
     private fun filePicker() {
-        val mimeTypes : Array<String> = arrayOf("image/*", "video/*", "application/pdf", "audio/*", "text/*")
+        val mimeTypes : Array<String> = arrayOf("image/*", "video/*", "application/pdf", "audio/*")
         val intent = Intent()
             .setType("*/*")
             .setAction(Intent.ACTION_GET_CONTENT)
@@ -45,6 +47,31 @@ class FilePickerActivity : AppCompatActivity() {
     private fun send() {
         if (fileURI == "") {
             toast("Please choose a file first")
+        } else {
+            // Double check with user
+            val alertDialogBuilder = AlertDialog.Builder(this)
+            alertDialogBuilder.setTitle("Sending Confirmation")
+            alertDialogBuilder.setMessage("Are you sure you wish to send this file?")
+            alertDialogBuilder.setPositiveButton(R.string.send) { _, _ -> checkLessThan5MB(fileURI) }
+            alertDialogBuilder.setNegativeButton(R.string.cancel) { _, _ -> toast("File sending cancelled") }
+            alertDialogBuilder.show()
+        }
+    }
+
+    private fun checkLessThan5MB(fileURI : String) {
+        // Create File object to convert to bytes
+        val file = File(fileURI)
+
+        // 5 MB Limit, read warning back to the user
+        if (file.readBytes().size > (1024 * 5000)) {
+            // Dialog the user and send back to file picker activity
+            val alertDialogBuilder = AlertDialog.Builder(this)
+            alertDialogBuilder.setTitle("File too large")
+            alertDialogBuilder.setMessage("This file is larger than the 5MB Limit")
+            alertDialogBuilder.setPositiveButton("OK") { _, _ ->
+                toast("File sending failed")
+            }
+            alertDialogBuilder.show()
         } else {
             val intent = Intent(this, SendActivity::class.java)
             intent.putExtra(EXTRA_DEVICE, device!!)
@@ -59,10 +86,13 @@ class FilePickerActivity : AppCompatActivity() {
         if (requestCode == 111) {
             if (resultCode == RESULT_OK) {
                 val selectedFile = data?.data //The uri with the location of the file
-                file_info_name_value.text = selectedFile?.path
-                fileURI = selectedFile?.path
+                val selectedFilePath = FilePickerHelper.getPath(this, selectedFile!!)
+                file_info_name_value.text = selectedFilePath
+                fileURI = selectedFilePath!!
             } else if (resultCode == RESULT_CANCELED) {
                 toast("File choosing cancelled")
+            } else {
+                toast("Error with choosing this file")
             }
         }
     }
