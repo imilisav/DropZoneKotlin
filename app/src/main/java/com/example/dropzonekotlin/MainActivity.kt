@@ -234,7 +234,7 @@ class MainActivity : AppCompatActivity() {
 
             Log.i("discovery", "" + m_bluetoothAdapter!!.startDiscovery())
 
-            BluetoothConnectionService().start("START_SERVER", null, null)
+            BluetoothConnectionService().startServer()
 
             changeTextToConnected(status_title)
             isInZone = true

@@ -16,17 +16,27 @@ class BluetoothConnectionService {
     companion object {
         val uuid: UUID = UUID.fromString("8989063a-c9af-463a-b3f1-f21d9b2b827b")
         var fileURI: String = ""
-        val TAG: String = "BLUETOOTH CONNECTION"
+        const val TAG: String = "BLUETOOTH CONNECTION"
+        var success: Boolean = false
     }
 
-    fun start(message: String, device: BluetoothDevice?, uri: String?) {
-        Log.i("BLUETOOTH SERVICE", message)
-        if (message == "START_SERVER") {
-            BluetoothServerController().start()
-        } else if (message == "START_CLIENT") {
-            fileURI = uri!!
-            BluetoothClient(device!!).start()
+    fun startServer() {
+        Log.i("Server", "Starting")
+        BluetoothServerController().start()
+    }
+
+    fun startClient(device: BluetoothDevice, uri: String) : Boolean {
+        fileURI = uri
+
+        val btClient = BluetoothClient(device)
+        btClient.start()
+        try {
+            btClient.join()
+        } catch (e: InterruptedException) {
+            Log.e(TAG, "File sending was interrupted")
         }
+
+        return success
     }
 
     class BluetoothClient(device: BluetoothDevice): Thread() {
@@ -62,6 +72,8 @@ class BluetoothConnectionService {
              outputStream.write(file.name.toByteArray())
              outputStream.write(fileSize.array())
              outputStream.write(fileBytes)
+
+             success = true
 
              sleep(5000)
              outputStream.close()
