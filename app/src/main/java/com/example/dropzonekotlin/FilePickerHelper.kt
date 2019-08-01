@@ -8,8 +8,26 @@ import android.os.Environment
 import android.provider.DocumentsContract
 import android.provider.MediaStore
 
+/**
+ * This is a helper class for the FilePickerActivity, which contains methods for getting the real path of a file.
+ * The URI provided from the built-in file picker, is not a path that will work when directly accessing the file
+ * in storage. Thus a proper URI conversion is required.
+ */
 class FilePickerHelper {
+
+    /**
+     * Declaring a companion object in kotlin with all methods in it => declaring these methods static.
+     */
     companion object {
+        /**
+         * Gets the absolute path of the file in storage, based on various file parameters in the URI given from
+         * the filePicker.
+         *
+         * @see FilePickerActivity
+         * @param context - the context of the Activity that called this helper.
+         * @param uri - URI that the file picker gave from the activity result.
+         * @return String
+         */
          fun getPath(context: Context, uri: Uri): String? {
 
             // DocumentProvider
