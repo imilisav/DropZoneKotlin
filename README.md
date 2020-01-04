@@ -12,9 +12,9 @@ Essentially the app works as follows:
 3. If you selected a device, you choose the file you wish to send and confirm your selection.
 4. It sends the file, and a result message shows; confirming that the file sent or it failed to send.
 
-![](/images/logo.png)
-![](/images/logo.png)
-![](/images/logo.png)
+![](appSC1.png)
+![](appSC2.png)
+![](appSC3.png)
 
 ---
 
