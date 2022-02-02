@@ -1,12 +1,15 @@
 # DropZone Android Application
 
+NOTE: THIS SOFTWARE IS DELIVERED AS-IS. I AM NOT WORKING ON THIS ANYMORE. I DO NOT TAKE ANY RESPONSIBILITY FOR ANY ISSUES THAT MAY ARISE FROM THE USAGE OF THIS SOFTWARE. USE AT YOUR OWN RISK.
+
+---
 In my software engineering course at school, we were assigned to finish a project, a software project of our choosing. Thus, DropZone was thought out, an app that tries to mimic the AirDrop feature on apple products.
 
 It was written in Kotlin, as many resources about using Android's bluetooth library with kotlin were up to date.
 
 ---
 
-Essentially the app works as follows:
+Essentially the app works as follow
 1. You open the app and enter the zone. What this means is that you have turned on bluetooth and are discoverable by other devices for some limited time.
 2. You can select a device to send files to; either previously paired devices or recently discovered devices. If you are supposed to recieve a file, you don't select a device, the file should be in your file system when the sender has finished sending the file.
 3. If you selected a device, you choose the file you wish to send and confirm your selection.
